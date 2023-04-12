@@ -1,58 +1,67 @@
 import argparse
 import os
-from pathlib import Path
-import requests
-from tqdm import tqdm
-from bs4 import BeautifulSoup
+import re
 import zipfile
+from urllib.request import urlretrieve
 
-def download_file(url, output_dir, simulate=False):
-    response = requests.get(url, stream=True)
-    file_size = int(response.headers.get("content-length", 0))
-    filename = os.path.join(output_dir, url.split("/")[-1])
+from bs4 import BeautifulSoup
+from tqdm import tqdm
+
+
+class TqdmUpTo(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)
+
+
+def download_zip(url, output_dir, simulate):
+    file_name = url.split('/')[-1]
+    output_file = os.path.join(output_dir, file_name)
 
     if simulate:
-        print(f"Simulated download of {filename} ({file_size / (1024 * 1024):.2f} MB)")
+        print(f'Simulating download: {url} -> {output_file}')
+        return output_file
+
+    with TqdmUpTo(unit='B', unit_scale=True, miniters=1, desc=file_name) as t:
+        urlretrieve(url, filename=output_file, reporthook=t.update_to)
+
+    return output_file
+
+
+def unzip_file(file_path, output_dir, simulate):
+    if simulate:
+        print(f'Simulating unzip: {file_path}')
         return
 
-    with open(filename, "wb") as f:
-        with tqdm(
-            total=file_size, unit="iB", unit_scale=True, desc=filename.split("/")[-1]
-        ) as pbar:
-            for data in response.iter_content(chunk_size=1024):
-                f.write(data)
-                pbar.update(len(data))
-
-    return filename
-
-def parse_datasets(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    dataset_links = []
-
-    for link in soup.find_all("a"):
-        href = link.get("href")
-        if "citibike-tripdata" in href and ".zip" in href and "JC-" not in href:
-            dataset_links.append(href)
-
-    return dataset_links
-
-def unzip_file(file_path, output_dir):
-    with zipfile.ZipFile(file_path, "r") as zip_ref:
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
         zip_ref.extractall(output_dir)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download and unzip datasets from a given URL")
-    parser.add_argument("--url", default="https://s3.amazonaws.com/tripdata/index.html", help="URL to download datasets from")
-    parser.add_argument("--output-dir", default=Path("."), help="Output directory for downloaded datasets")
-    parser.add_argument("--simulate", action="store_true", help="Simulate download instead of actually downloading")
-    parser.add_argument("--unzip", action="store_true", help="Unzip the downloaded datasets")
+
+def main(input_html_file, output_dir, simulate, unzip):
+    with open(input_html_file, 'r') as f:
+        html_content = f.read()
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    links = soup.find_all('a', href=True)
+
+    csv_zip_links = [link['href'] for link in links if link['href'].endswith('.csv.zip') and not link['href'].startswith('https://s3.amazonaws.com/tripdata/JC-')]
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    for url in csv_zip_links:
+        downloaded_file = download_zip(url, output_dir, simulate)
+        if unzip:
+            unzip_file(downloaded_file, output_dir, simulate)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Download and unzip Citibike trip data.')
+    parser.add_argument('input_html_file', help='Input HTML file with links to the zip files.')
+    parser.add_argument('output_dir', help='Directory to store the downloaded and unzipped files.')
+    parser.add_argument('--simulate', action='store_true', help='Simulate the download and unzip process without actually downloading and unzipping the files.')
+    parser.add_argument('--unzip', action='store_true', help='Unzip the downloaded files.')
 
     args = parser.parse_args()
 
-    dataset_links = parse_datasets(args.url)
-
-    for dataset_url in dataset_links:
-        downloaded_file = download_file(dataset_url, args.output_dir, args.simulate)
-        if args.unzip and not args.simulate:
-            unzip_file(downloaded_file, args.output_dir)
+    main(args.input_html_file, args.output_dir, args.simulate, args.unzip)
