@@ -45,7 +45,8 @@ def main(input_html_file, output_dir, simulate, unzip):
     soup = BeautifulSoup(html_content, 'html.parser')
     links = soup.find_all('a', href=True)
 
-    csv_zip_links = [link['href'] for link in links if link['href'].endswith('.csv.zip') and not link['href'].startswith('https://s3.amazonaws.com/tripdata/JC-')]
+    csv_zip_links = [link['href'] for link in links if link['href'].endswith('.zip') and not link['href'].startswith('https://s3.amazonaws.com/tripdata/JC-')]
+    print(f'Found {len(csv_zip_links)} zip files to download.')
 
     os.makedirs(output_dir, exist_ok=True)
 
