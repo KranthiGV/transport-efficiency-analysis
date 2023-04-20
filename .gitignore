@@ -1,3 +1,6 @@
+# Datasets
+data/citibike/*
+
 # Compiled class file
 *.class
 
