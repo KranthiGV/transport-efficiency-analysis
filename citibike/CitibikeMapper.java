@@ -6,7 +6,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import java.io.IOException;
 import java.text.ParseException;
 
-public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
+public class CitibikeMapper extends Mapper<LongWritable, Text, Text, Text> {
 
     private static final String OUTPUT_SEPARATOR = ",";
     private boolean headerWritten = false;
