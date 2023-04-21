@@ -1,5 +1,7 @@
 public class CitibikeCounter {
     public enum Counters {
-        CLEANED_ROWS
+        ORIGINAL_ROWS,
+        CLEANED_ROWS,
+        REMOVED_ROWS
     }
 }

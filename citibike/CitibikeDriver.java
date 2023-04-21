@@ -32,8 +32,14 @@ public class CitibikeDriver {
         boolean success = job.waitForCompletion(true);
 
         if (success) {
+            long originalRows = job.getCounters().findCounter(CitibikeCounter.Counters.ORIGINAL_ROWS).getValue();
             long cleanedRows = job.getCounters().findCounter(CitibikeCounter.Counters.CLEANED_ROWS).getValue();
+            long removedRows = job.getCounters().findCounter(CitibikeCounter.Counters.REMOVED_ROWS).getValue();
+
+            System.out.println("Number of original rows: " + originalRows);
             System.out.println("Number of cleaned rows: " + cleanedRows);
+            System.out.println("Number of removed rows: " + removedRows);
+
             System.exit(0);
         } else {
             System.exit(1);

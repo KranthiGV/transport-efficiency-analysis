@@ -10,9 +10,11 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Tex
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
         if (key.get() == 0) {
-            // Skip header line of the CSV file
+            // Skip header line
             return;
         }
+
+        context.getCounter(CitibikeCounter.Counters.ORIGINAL_ROWS).increment(1);
 
         String line = value.toString();
         String[] fields = line.split(",");
@@ -28,6 +30,8 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Tex
         if (!skipRow) {
             context.write(NullWritable.get(), value);
             context.getCounter(CitibikeCounter.Counters.CLEANED_ROWS).increment(1);
+        } else {
+            context.getCounter(CitibikeCounter.Counters.REMOVED_ROWS).increment(1);
         }
     }
 }
