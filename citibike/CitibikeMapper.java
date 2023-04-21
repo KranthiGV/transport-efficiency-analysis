@@ -1,5 +1,3 @@
-package com.citibike;
-
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -11,24 +9,23 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Tex
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        // Skip the header of the CSV file
-        if (key.get() == 0 && value.toString().contains("ride_id")) {
+        if (key.get() == 0) {
+            // Skip header line of the CSV file
             return;
         }
 
         String line = value.toString();
-        String[] fields = line.split(",", -1);
+        String[] fields = line.split(",");
 
-        // Check for null values
-        boolean hasNull = false;
+        boolean skipRow = false;
         for (String field : fields) {
-            if (field.isEmpty()) {
-                hasNull = true;
+            if (field.trim().isEmpty()) {
+                skipRow = true;
                 break;
             }
         }
 
-        if (!hasNull) {
+        if (!skipRow) {
             context.write(NullWritable.get(), value);
         }
     }
