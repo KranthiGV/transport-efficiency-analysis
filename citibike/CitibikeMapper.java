@@ -6,15 +6,13 @@ import org.apache.hadoop.mapreduce.Mapper;
 import java.io.IOException;
 import java.text.ParseException;
 
-public class CitibikeMapper extends Mapper<LongWritable, Text, Text, Text> {
+public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritable> {
 
     private static final String OUTPUT_SEPARATOR = ",";
     private boolean headerWritten = false;
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        String[] fields = value.toString().split(",");
-
         if (key.get() == 0 && value.toString().contains("ride_id")) {
             // Skip the header row in the input file
             return;
@@ -23,7 +21,7 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, Text> {
         if (!headerWritten) {
             // Write the updated header
             String header = "ride_id,rideable_type,started_at,ended_at,start_station_name,start_station_id,end_station_name,end_station_id,start_lat,start_lng,end_lat,end_lng,member_casual,trip_duration_seconds,year,month,day,hour,day_of_week,distance_km";
-            context.write(new Text(header), new Text());
+            context.write(new Text(header), NullWritable.get());
             headerWritten = true;
         }
 
