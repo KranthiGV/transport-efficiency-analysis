@@ -8,18 +8,9 @@ import java.text.ParseException;
 
 public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
 
-    private static final String OUTPUT_SEPARATOR = ",";
-    private boolean headerWritten = false;
-
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        if (!headerWritten) {
-            // Write the updated header
-            String header = "ride_id,rideable_type,started_at,ended_at,start_station_name,start_station_id,end_station_name,end_station_id,start_lat,start_lng,end_lat,end_lng,member_casual,trip_duration_seconds,year,month,day,hour,day_of_week,distance_km";
-            context.write(NullWritable.get(), new Text(header));
-            headerWritten = true;
-        }
-    
+
         if (key.get() == 0 && value.toString().contains("ride_id")) {
             // Skip the header row in the input file
             return;
@@ -50,6 +41,8 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Tex
 
                 // Append the new columns to the output
                 String output = String.join(",", fields) + "," + durationInSeconds + "," + String.join(",", dateComponents) + "," + distance;
+                // Updated header:
+                // "ride_id,rideable_type,started_at,ended_at,start_station_name,start_station_id,end_station_name,end_station_id,start_lat,start_lng,end_lat,end_lng,member_casual,trip_duration_seconds,year,month,day,hour,day_of_week,distance_km"
                 context.write(NullWritable.get(), new Text(output));
 
                 context.getCounter(CitibikeCounter.Counters.CLEANED_ROWS).increment(1);
