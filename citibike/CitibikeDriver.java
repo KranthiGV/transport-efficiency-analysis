@@ -35,15 +35,17 @@ public class CitibikeDriver {
             long originalRows = job.getCounters().findCounter(CitibikeCounter.Counters.ORIGINAL_ROWS).getValue();
             long cleanedRows = job.getCounters().findCounter(CitibikeCounter.Counters.CLEANED_ROWS).getValue();
             long removedRows = job.getCounters().findCounter(CitibikeCounter.Counters.REMOVED_ROWS).getValue();
-
+            long invalidDateTime = job.getCounters().findCounter(CitibikeCounter.Counters.INVALID_DATE_TIME).getValue();
+            long invalidLatLng = job.getCounters().findCounter(CitibikeCounter.Counters.INVALID_LAT_LNG).getValue();
+        
             System.out.println("Number of original rows: " + originalRows);
             System.out.println("Number of cleaned rows: " + cleanedRows);
             System.out.println("Number of removed rows: " + removedRows);
-
-            System.exit(0);
-        } else {
-            System.exit(1);
+            System.out.println("Number of invalid date/time rows: " + invalidDateTime);
+            System.out.println("Number of invalid latitude/longitude rows: " + invalidLatLng);
         }
+        
+        System.exit(success ? 0 : 1);
 
     }
 }
