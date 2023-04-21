@@ -6,7 +6,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import java.io.IOException;
 import java.text.ParseException;
 
-public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritable> {
+public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
 
     private static final String OUTPUT_SEPARATOR = ",";
     private boolean headerWritten = false;
@@ -21,7 +21,7 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritabl
         if (!headerWritten) {
             // Write the updated header
             String header = "ride_id,rideable_type,started_at,ended_at,start_station_name,start_station_id,end_station_name,end_station_id,start_lat,start_lng,end_lat,end_lng,member_casual,trip_duration_seconds,year,month,day,hour,day_of_week,distance_km";
-            context.write(new Text(header), NullWritable.get());
+            context.write(NullWritable.get(), new Text(header));
             headerWritten = true;
         }
 
@@ -50,7 +50,7 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritabl
 
                 // Append the new columns to the output
                 String output = String.join(",", fields) + "," + durationInSeconds + "," + String.join(",", dateComponents) + "," + distance;
-                context.write(new Text(output), NullWritable.get());
+                context.write(NullWritable.get(), new Text(output));
 
                 context.getCounter(CitibikeCounter.Counters.CLEANED_ROWS).increment(1);
             } catch (ParseException e) {
@@ -58,5 +58,4 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritabl
             }
         }
     }
-
 }
