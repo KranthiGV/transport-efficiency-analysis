@@ -25,6 +25,7 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritabl
             headerWritten = true;
         }
 
+        String[] fields = value.toString().split(",");
         boolean skipRow = false;
         for (String field : fields) {
             if (field == null || field.isEmpty()) {
@@ -49,13 +50,13 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, Text, NullWritabl
 
                 // Append the new columns to the output
                 String output = String.join(",", fields) + "," + durationInSeconds + "," + String.join(",", dateComponents) + "," + distance;
-                context.write(NullWritable.get(), new Text(output));
+                context.write(new Text(output), NullWritable.get());
 
                 context.getCounter(CitibikeCounter.Counters.CLEANED_ROWS).increment(1);
             } catch (ParseException e) {
                 context.getCounter(CitibikeCounter.Counters.REMOVED_ROWS).increment(1);
-                // Log the error if required
             }
         }
     }
+
 }
