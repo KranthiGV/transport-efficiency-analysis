@@ -29,6 +29,15 @@ public class CitibikeDriver {
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
 
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        boolean success = job.waitForCompletion(true);
+
+        if (success) {
+            long cleanedRows = job.getCounters().findCounter(CitibikeCounter.Counters.CLEANED_ROWS).getValue();
+            System.out.println("Number of cleaned rows: " + cleanedRows);
+            System.exit(0);
+        } else {
+            System.exit(1);
+        }
+
     }
 }

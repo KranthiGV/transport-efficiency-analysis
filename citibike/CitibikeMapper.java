@@ -27,6 +27,7 @@ public class CitibikeMapper extends Mapper<LongWritable, Text, NullWritable, Tex
 
         if (!skipRow) {
             context.write(NullWritable.get(), value);
+            context.getCounter(CitibikeCounter.Counters.CLEANED_ROWS).increment(1);
         }
     }
 }
